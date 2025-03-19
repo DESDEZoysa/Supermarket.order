@@ -10,6 +10,7 @@ import com.eranga.supermarket.order.service.KafkaService;
 import com.eranga.supermarket.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class OrderServiceImpl implements OrderService {
     private final KafkaService kafkaService;
 
     @Override
+    @Transactional
     public OrderDto createOrder(OrderDto orderDto) {
         OrderEntity orderEntity =orderRepository.save(orderMapper.orderDtoToEntity(orderDto));
         orderDto = orderMapper.orderEntityToDto(orderEntity);

@@ -23,7 +23,7 @@ public class OrderDto {
     private Integer customerId;
     @NotBlank(message = "orderDate cannot be blank")
     private String orderDate;
-    @NotNull(message = "Order status cannot be blank")
+    @NotNull(message = "Order status cannot be null")
     private OrderStatusEnum status;
     private OrderFailReasonEnum failReason;
     @NotNull(message = "Payment method cannot be null")

@@ -6,6 +6,7 @@ import com.eranga.supermarket.order.model.enums.OrderStatusEnum;
 import com.eranga.supermarket.order.repository.OrderRepository;
 import com.eranga.supermarket.order.service.KafkaService;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,14 +30,21 @@ public class KafkaServiceImpl implements KafkaService {
 
     @Override
     public void sendOrderEvent(OrderDto orderDto) {
-        CompletableFuture<SendResult<String, OrderDto>> completableFuture = kafkaOrderTemplate.send(newOrderTopic, orderDto);
-        completableFuture.whenComplete((result, ex) -> {
-            if (ex == null) {
-                logger.info("Sent new order event = {}", orderDto);
-            } else {
-                logger.error("Unable to send new order event = {}", orderDto);
-                orderRepository.updateOrderStatus(orderDto.getId(), OrderStatusEnum.Fail.name(), OrderFailReasonEnum.PublishingOrderEvenFail.name());
-            }
-        });
+        try {
+            RecordMetadata metadata =kafkaOrderTemplate.send(newOrderTopic, orderDto).get().getRecordMetadata();
+            logger.info("Sent new order event = {} to partition = {}", orderDto,metadata.partition());
+        }catch (Exception e){
+            logger.error("Unable to send new order event = {}", orderDto);
+            throw new RuntimeException("New order event sending failed", e);
+        }
+
+//        CompletableFuture<SendResult<String, OrderDto>> completableFuture = kafkaOrderTemplate.send(newOrderTopic, orderDto);
+//        completableFuture.whenComplete((result, ex) -> {
+//            if (ex == null) {
+//                logger.info("Sent new order event = {}", orderDto);
+//            } else {
+//                logger.error("Unable to send new order event = {}", orderDto);
+//            }
+//        });
     }
 }
